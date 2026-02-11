@@ -1,0 +1,48 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Logs
+*.log
+logs/
+/tmp/*.log
+
+# Backups
+*.backup
+/backups/
+/tmp/anon-backups/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Runtime files
+*.pid
+*.lock
+
+# Configuration files with secrets
+*.conf
+.env
+.env.*
+
+# Anonymization artifacts (for privacy)
+session_logs/
+scan_results/
+captures/
+
+# Test outputs
+test_*
