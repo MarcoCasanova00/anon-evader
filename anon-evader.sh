@@ -159,8 +159,19 @@ EOF
 prevent_dns_leaks() {
     log_info "Preventing DNS leaks..."
     
+    # Remove immutable flag if present (requires root)
+    chattr -i /etc/resolv.conf 2>/dev/null || true
+    
     # Backup current resolv.conf
-    [[ -f /etc/resolv.conf ]] && cp /etc/resolv.conf "$BACKUP_DIR/resolv.conf.backup"
+    # If it's a symlink, we want to backup the link itself or its content? 
+    # Usually better to backup the content if we're replacing it.
+    if [[ -L /etc/resolv.conf ]]; then
+        log_warning "/etc/resolv.conf is a symlink, replacing with regular file"
+        cp -L /etc/resolv.conf "$BACKUP_DIR/resolv.conf.backup"
+        rm /etc/resolv.conf
+    elif [[ -f /etc/resolv.conf ]]; then
+        cp /etc/resolv.conf "$BACKUP_DIR/resolv.conf.backup"
+    fi
     
     # Set DNS to localhost (Tor)
     cat > /etc/resolv.conf << 'EOF'
@@ -271,11 +282,15 @@ switch_to_anon() {
 restore_normal() {
     log_info "Restoring normal configuration..."
     
+    # Remove immutable flag if present
+    chattr -i /etc/resolv.conf 2>/dev/null || true
+    
     # Restore resolv.conf
     if [[ -f "$BACKUP_DIR/resolv.conf.backup" ]]; then
         cp "$BACKUP_DIR/resolv.conf.backup" /etc/resolv.conf
-        chattr -i /etc/resolv.conf 2>/dev/null || true
         log_success "DNS configuration restored"
+    else
+        log_warning "No DNS backup found to restore"
     fi
     
     # Re-enable IPv6
