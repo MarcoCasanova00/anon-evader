@@ -131,12 +131,17 @@ setup_tor() {
 # Setup proxychains configuration
 setup_proxychains() {
     log_info "Configuring proxychains..."
+    check_root || return 1
     
     local proxychains_conf="/etc/proxychains4.conf"
     if [[ ! -f "$proxychains_conf" ]]; then
         proxychains_conf="/etc/proxychains.conf"
     fi
     
+    # Remove immutable flag if present
+    chattr -i "$proxychains_conf" 2>/dev/null || true
+    [[ -f "$proxychains_conf.backup" ]] && chattr -i "$proxychains_conf.backup" 2>/dev/null || true
+
     # Backup original config
     [[ -f "$proxychains_conf" ]] && cp "$proxychains_conf" "$proxychains_conf.backup"
     
@@ -158,6 +163,7 @@ EOF
 # Prevent DNS leaks
 prevent_dns_leaks() {
     log_info "Preventing DNS leaks..."
+    check_root || return 1
     
     # Remove immutable flag if present (requires root)
     chattr -i /etc/resolv.conf 2>/dev/null || true
@@ -188,6 +194,7 @@ EOF
 # Disable IPv6 to prevent leaks
 disable_ipv6() {
     log_info "Disabling IPv6 to prevent leaks..."
+    check_root || return 1
     
     # Set sysctl parameters
     sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null
@@ -281,6 +288,7 @@ switch_to_anon() {
 # Restore normal configuration
 restore_normal() {
     log_info "Restoring normal configuration..."
+    check_root || return 1
     
     # Remove immutable flag if present
     chattr -i /etc/resolv.conf 2>/dev/null || true
